@@ -3,7 +3,22 @@
 
 YOLO26 represents a major architectural milestone in the Ultralytics series, specifically designed for **Native End-to-End (NMS-Free) inference**. By eliminating the Non-Maximum Suppression (NMS) bottleneck and removing Distribution Focal Loss (DFL), YOLO26 provides a **streamlined, deterministic pipeline** optimized for edge AI and real-time deployment.
 
+YOLO26 uses a C3k2 backbone for efficient feature extraction, a lightweight multi-scale neck for feature fusion, and a 1-to-1 anchor-free head with bipartite matching to produce NMS-free predictions, enabling deterministic and deployment-friendly object detection.
 ---
+🔄 Flow
+
+Backbone (C3k2)
+
+Efficient feature extraction
+Good gradient flow
+
+Neck (Fusion)
+Multi-scale feature aggregation
+Lightweight + aligned
+
+Head (1-to-1)
+Single prediction per object
+No NMS, no DFL
 
 ## 1. Architectural Design Philosophy
 
