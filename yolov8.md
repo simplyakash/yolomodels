@@ -1,3 +1,29 @@
+7️⃣ YOLOv8 (2023)
+
+Major change: Anchor-free detection
+
+Backbone → C2f modules
+
+Neck     → PAN-FPN
+
+Head     → Anchor-free head
+
+Architecture:
+
+Image
+↓
+C2f Backbone
+↓
+FPN + PAN
+↓
+Anchor-free Head
+
+Benefits:
+
+Simpler training and Better generalization
+
+
+
 Key Features of YOLOv8 (Compared to YOLOv5)
 
 🔹 1. Advanced Backbone and Neck Architectures
