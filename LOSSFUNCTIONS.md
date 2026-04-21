@@ -47,3 +47,17 @@ Loss Component	Type	Purpose
 $L_{box}$	CIoU Loss	Bounding box accuracy
 $L_{cls}$	Binary Cross Entropy	Classification accuracy
 $L_{dfl}$	Distribution Focal Loss	Precise localization
+
+
+
+
+
+### Loss Functions
+
+**Binary Cross Entropy:**
+
+$L_{BCE} = -[y \log(p) + (1 - y)\log(1 - p)]$
+
+**Dice Loss:**
+
+$L_{dice} = 1 - \frac{2|P \cap G|}{|P| + |G|}$
