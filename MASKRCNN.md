@@ -1,3 +1,140 @@
+Segmentation:
+# 🧠 Segmentation Models: When to Use What
+
+This guide explains when to use **Mask R-CNN, YOLO (seg), U-Net, and SAM** for segmentation tasks.
+
+---
+
+## 📌 Types of Segmentation
+
+- **Semantic Segmentation**  
+  Label every pixel with a class (no distinction between objects)
+
+- **Instance Segmentation**  
+  Detect and segment each object separately
+
+- **Interactive / Prompt-based Segmentation**  
+  Provide hints (clicks, boxes, prompts) to get segmentation
+
+---
+
+## 🔍 Model Comparison
+
+### 🟥 Mask R-CNN
+**Best for:** High-quality **instance segmentation**
+
+**Use when:**
+- You need **separate masks for each object**
+- Accuracy is more important than speed
+- Dataset size is moderate
+
+**Examples:**
+- Detecting multiple people in an image
+- Medical detection of multiple tumors
+
+**Pros:**
+- High accuracy
+- Precise masks
+- Outputs bounding boxes + masks
+
+**Cons:**
+- Slower
+- Computationally heavy
+
+---
+
+### 🟨 YOLO (e.g., YOLOv8-seg)
+**Best for:** **Real-time instance segmentation**
+
+**Use when:**
+- You need **fast inference (real-time/video)**
+- Slight accuracy trade-off is acceptable
+- You want detection + segmentation together
+
+**Examples:**
+- Autonomous driving
+- Surveillance systems
+
+**Pros:**
+- Very fast ⚡
+- Good for real-time applications
+
+**Cons:**
+- Less precise masks than Mask R-CNN
+
+---
+
+### 🟩 U-Net
+**Best for:** **Semantic segmentation**
+
+**Use when:**
+- You need **pixel-level classification**
+- Objects do not need to be separated
+- You have **limited data**
+
+**Examples:**
+- Tumor segmentation
+- Satellite image analysis
+
+**Pros:**
+- Works well with small datasets
+- High pixel-level accuracy
+
+**Cons:**
+- Cannot distinguish between separate instances
+
+---
+
+### 🟦 SAM (Segment Anything Model)
+**Best for:** **General-purpose / interactive segmentation**
+
+**Use when:**
+- You don’t want to train a model
+- You need flexible, prompt-based segmentation
+- You want to generate annotations quickly
+
+**Examples:**
+- Annotation tools
+- Quick segmentation tasks
+
+**Pros:**
+- Zero-shot (no training needed)
+- Highly flexible
+
+**Cons:**
+- Not task-specific
+- May require prompts
+- Not ideal alone for production pipelines
+
+---
+
+## ⚖️ Quick Decision Table
+
+| Requirement                          | Recommended Model |
+|-------------------------------------|------------------|
+| High-accuracy instance segmentation | Mask R-CNN       |
+| Real-time segmentation              | YOLO             |
+| Pixel-wise classification           | U-Net            |
+| No training / interactive use       | SAM              |
+
+---
+
+## 🧩 Intuition Cheat Sheet
+
+- Want **"what is where"** → U-Net  
+- Want **"which object is which"** → Mask R-CNN  
+- Want **fast detection + segmentation** → YOLO  
+- Want **segment anything quickly** → SAM  
+
+---
+
+## 🚀 Tip
+If you combine models:
+- Use **SAM for annotation**
+- Train **YOLO / Mask R-CNN / U-Net** for production
+
+---
+
 🧠 Mask R-CNN — Architecture, Flow, and Shapes
 
 This is a detection + segmentation model: it finds objects and predicts a mask for each one.
