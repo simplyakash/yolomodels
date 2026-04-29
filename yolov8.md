@@ -11,11 +11,17 @@ Head     → Anchor-free head
 Architecture:
 
 Image
+
 ↓
+
 C2f Backbone
+
 ↓
+
 FPN + PAN
+
 ↓
+
 Anchor-free Head
 
 Benefits:
@@ -389,7 +395,7 @@ $\text{More efficient than traditional SPP}$
 
 🔹 3. Neck (Feature Aggregation - PAN-FPN)
 
-🔺 Upsample + Concatenate ($P5 \rightarrow P4$)
+🔺 Upsample + Concatenate  with corresponding C2f Output ($P5 \rightarrow P4$)
 Upsample:
 
 $(20 \times 20) \rightarrow (40 \times 40)$
