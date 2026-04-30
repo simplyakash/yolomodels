@@ -34,6 +34,7 @@ Where:
 
 $y$ → Ground truth label
 $p$ → Predicted probability
+
 🔹 3. Distribution Focal Loss ($L_{dfl}$)
 
 $L_{DFL} = - \sum y_i \log(p_i)$
@@ -42,8 +43,27 @@ Where:
 
 $y_i$ → Target distribution
 $p_i$ → Predicted probabilities
+
+DFL improves bounding box localization by modeling coordinates as probability distributions instead of single scalar values, enabling more precise and stable predictions.
+Instead of saying:
+"The value is 5"
+
+DFL says:
+"It's mostly around 5, maybe 4 or 6"
+
+Why This Helps
+
+✅ 1. Sub-pixel Accuracy
+
+Smooth predictions instead of discrete jumps
+
+✅ 2. Better Gradient Flow
+
+Distribution → richer learning signal
+
 📊 Summary
 Loss Component	Type	Purpose
+
 $L_{box}$	CIoU Loss	Bounding box accuracy
 $L_{cls}$	Binary Cross Entropy	Classification accuracy
 $L_{dfl}$	Distribution Focal Loss	Precise localization
