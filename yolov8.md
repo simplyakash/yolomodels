@@ -96,6 +96,8 @@ Better adaptability for different use cases
 
 
 
+
+
 ✅ Conclusion
 
 YOLOv8 improves upon YOLOv5 by:
@@ -287,19 +289,27 @@ Uses a single $5 \times 5$ max pooling layer repeatedly
 | $C$           | $\text{Number of channels}$ |
 | $H, W$        | $\text{Spatial dimensions}$ |
 
+| **Parameter** | **Description**    |
+| ------------- | ------------------ |
+| `B`           | Batch size         |
+| `C`           | Channels           |
+| `H, W`        | Spatial dimensions |
+
+
 Example Input
 
-$(1, 512, 20, 20)$
+(1, 512, 20, 20)
 
 🔁 Step-by-Step Computation
 
 ✅ Step 1: Channel Reduction (1×1 Convolution)
 
-$(1, 512, 20, 20) \rightarrow (1, 256, 20, 20)$
+(1, 512, 20, 20) → (1, 256, 20, 20)
 
-| **Input Shape**    | **Output Shape**   | **Operation**               |
-| ------------------ | ------------------ | --------------------------- |
-| $(1, 512, 20, 20)$ | $(1, 256, 20, 20)$ | $\text{Conv } (1 \times 1)$ |
+| Input              | Output             | Operation    |
+| ------------------ | ------------------ | ------------ |
+| `(1, 512, 20, 20)` | `(1, 256, 20, 20)` | `Conv (1×1)` |
+
 
 
 Let:
@@ -308,7 +318,7 @@ $x$
 
 ✅ Step 2: First Max Pooling
 
-$y_1 = \text{MaxPool}(x)$
+y1 = MaxPool(x)
 
 | **Input Shape**    | **Output Shape**   |
 | ------------------ | ------------------ |
@@ -316,7 +326,7 @@ $y_1 = \text{MaxPool}(x)$
 
 ✅ Step 3: Second Max Pooling
 
-$y_2 = \text{MaxPool}(y_1)$
+y2 = MaxPool(y1)
 
 | **Input Shape**    | **Output Shape**   |
 | ------------------ | ------------------ |
@@ -324,11 +334,12 @@ $y_2 = \text{MaxPool}(y_1)$
 
 ✅ Step 4: Third Max Pooling
 
-$y_3 = \text{MaxPool}(y_2)$
+y3 = MaxPool(y2)
 
 | **Input Shape**    | **Output Shape**   |
 | ------------------ | ------------------ |
 | $(1, 256, 20, 20)$ | $(1, 256, 20, 20)$ |
+
 
 | **Feature Map** | **Receptive Field** |
 | --------------- | ------------------- |
@@ -337,27 +348,40 @@ $y_3 = \text{MaxPool}(y_2)$
 | $y_2$           | $9 \times 9$        |
 | $y_3$           | $13 \times 13$      |
 
+
+| Feature | Receptive Field |
+| ------- | --------------- |
+| `x`     | Original        |
+| `y1`    | `5×5`           |
+| `y2`    | `9×9`           |
+| `y3`    | `13×13`         |
+
+
 ✅ Step 5: Concatenation
 
-$[x, y_1, y_2, y_3]$
+[x, y1, y2, y3]
 
-$(1, 256 \times 4, 20, 20) = (1, 1024, 20, 20)$
+(1, 256×4, 20, 20) = (1, 1024, 20, 20)
 
-| **Input Channels** | **Output Channels** | **Shape**           |
-| ------------------ | ------------------- | ------------------- |
-| $256 \times 4$     | $1024$              | $(1, 1024, 20, 20)$ |
+| Input Channels | Output Channels | Shape               |
+| -------------- | --------------- | ------------------- |
+| `256×4`        | `1024`          | `(1, 1024, 20, 20)` |
+
+
 
 ✅ Step 6: Final 1×1 Convolution
 
-$(1, 1024, 20, 20) \rightarrow (1, 512, 20, 20)$
+(1, 1024, 20, 20) → (1, 512, 20, 20)
 
 | **Input Shape**     | **Output Shape**   | **Operation**               |
 | ------------------- | ------------------ | --------------------------- |
 | $(1, 1024, 20, 20)$ | $(1, 512, 20, 20)$ | $\text{Conv } (1 \times 1)$ |
 
+
 🎯 Final Output
 
-$(1, 512, 20, 20)$
+(1, 512, 20, 20)
+
 
 🔄 Full Pipeline Summary
 | **Step**       | **Operation**                  | **Output Shape**    |
@@ -370,12 +394,31 @@ $(1, 512, 20, 20)$
 | $5$            | $\text{Concat 1234}$                | $(1, 1024, 20, 20)$ |
 | $6$            | $\text{Conv } (1 \times 1)$    | $(1, 512, 20, 20)$  |
 
+| Step  | Operation | Output              |
+| ----- | --------- | ------------------- |
+| Input | -         | `(1, 512, 20, 20)`  |
+| 1     | Conv      | `(1, 256, 20, 20)`  |
+| 2     | MaxPool   | `(1, 256, 20, 20)`  |
+| 3     | MaxPool   | `(1, 256, 20, 20)`  |
+| 4     | MaxPool   | `(1, 256, 20, 20)`  |
+| 5     | Concat    | `(1, 1024, 20, 20)` |
+| 6     | Conv      | `(1, 512, 20, 20)`  |
+
+
+
 | **Stage** | **Operation**         | **Input Shape**    | **Output Shape**   | **Kernel Size** | **Stride** | **Padding** | **Effective Receptive Field** |
 | --------- | --------------------- | ------------------ | ------------------ | --------------- | ---------- | ----------- | ----------------------------- |
 | $x$       | Input                 | $(1, 256, 20, 20)$ | $(1, 256, 20, 20)$ | $-$             | $-$        | $-$         | $1 \times 1$                  |
 | $y_1$     | $\text{MaxPool}(x)$   | $(1, 256, 20, 20)$ | $(1, 256, 20, 20)$ | $5 \times 5$    | $1$        | $2$         | $5 \times 5$                  |
 | $y_2$     | $\text{MaxPool}(y_1)$ | $(1, 256, 20, 20)$ | $(1, 256, 20, 20)$ | $5 \times 5$    | $1$        | $2$         | $9 \times 9$                  |
 | $y_3$     | $\text{MaxPool}(y_2)$ | $(1, 256, 20, 20)$ | $(1, 256, 20, 20)$ | $5 \times 5$    | $1$        | $2$         | $13 \times 13$                |
+
+| Stage | Operation | Input              | Output             | Kernel | Stride | Padding | RF      |
+| ----- | --------- | ------------------ | ------------------ | ------ | ------ | ------- | ------- |
+| `x`   | Input     | `(1, 256, 20, 20)` | `(1, 256, 20, 20)` | -      | -      | -       | `1×1`   |
+| `y1`  | MaxPool   | `(1, 256, 20, 20)` | `(1, 256, 20, 20)` | `5×5`  | 1      | 2       | `5×5`   |
+| `y2`  | MaxPool   | `(1, 256, 20, 20)` | `(1, 256, 20, 20)` | `5×5`  | 1      | 2       | `9×9`   |
+| `y3`  | MaxPool   | `(1, 256, 20, 20)` | `(1, 256, 20, 20)` | `5×5`  | 1      | 2       | `13×13` |
 
 
 
@@ -387,81 +430,92 @@ $(1, 512, 20, 20)$
 | $\text{Implementation}$   | $\text{Parallel}$                     | $\text{Sequential}$           |
 | $\text{Speed}$            | $\text{Slower}$                       | $\text{Faster}$               |
 
+| Feature          | SPP                         | SPPF           |
+| ---------------- | --------------------------- | -------------- |
+| Pooling Strategy | Multiple kernels `(5,9,13)` | Repeated `5×5` |
+| Computation      | Expensive                   | Efficient      |
+| Implementation   | Parallel                    | Sequential     |
+| Speed            | Slower                      | Faster         |
+
+
+
 🧠 Key Takeaways
-$\text{Spatial dimensions remain unchanged}$
-$\text{Channel expansion followed by compression}$
-$\text{Captures multi-scale context}$
-$\text{More efficient than traditional SPP}$
+
+Spatial dimensions unchanged
+Channel expand → compress
+Multi-scale context
+
 
 🔹 3. Neck (Feature Aggregation - PAN-FPN)
 
 🔺 Upsample + Concatenate  with corresponding C2f Output ($P5 \rightarrow P4$)
 Upsample:
 
-$(20 \times 20) \rightarrow (40 \times 40)$
+(20×20 → 40×40)
 
 Concatenate with Stage 4 output
 
 Output Shape:
 
-$(40 \times 40 \times 512)$
+40×40x512
 
 C2f Block (feature refinement)
 
 Output Shape:
 
-$(40 \times 40 \times 256)$
+40×40x256
 
 🔺 Upsample + Concatenate ($P4 \rightarrow P3$)
 Upsample:
 
-$(40 \times 40) \rightarrow (80 \times 80)$
+(40x40 → 80x80)
 
 Concatenate with Stage 3 output
 
 Output Shape:
 
-$(80 \times 80 \times 256)$
+80×80x256
 
 C2f Block
 
 Output Shape:
 
-$(80 \times 80 \times 128)$
+80×80x128
 
 🔻 Downsample Path (PAN)
 Conv (stride $2$):
 
-$(80 \times 80) \rightarrow (40 \times 40)$
+(80x80 → 40x40)
 
-Concatenate with previous $P4$
+Concatenate with previous P4
 
 Output Shape:
 
-$(40 \times 40 \times 256)$
+40x40x256
 
 C2f Block
 
 Output Shape:
 
-$(40 \times 40 \times 256)$
+40x40x256
 
 🔻 Final Downsample
+
 Conv (stride $2$):
 
-$(40 \times 40) \rightarrow (20 \times 20)$
+(40x40 → 20x20)
 
-Concatenate with $P5$
+Concatenate with P5
 
 Output Shape:
 
-$(20 \times 20 \times 512)$
+20x20x512
 
 C2f Block
 
 Output Shape:
 
-$(20 \times 20 \times 512)$
+20x20x512
 
 🔹 4. Head (Detection Layer)
 
@@ -472,6 +526,13 @@ YOLOv8 uses an anchor-free detection head.
 | **Small Objects**  | $$80 \times 80$$     | 128          |
 | **Medium Objects** | $$40 \times 40$$     | 256          |
 | **Large Objects**  | $$20 \times 20$$     | 512          |
+
+| Scale  | Feature Map | Channels |
+| ------ | ----------- | -------- |
+| Small  | `80×80`     | 128      |
+| Medium | `40×40`     | 256      |
+| Large  | `20×20`     | 512      |
+
 
 Detection Output
 
@@ -497,6 +558,17 @@ Stage 3	80×80×128	128
 Stage 4	40×40×256	256
 Stage 5	20×20×512	512
 Neck Outputs	80,40,20 scales	128–512
+
+| Stage  | Output       | Filters |
+| ------ | ------------ | ------- |
+| Input  | `640×640×3`  | -       |
+| Conv1  | `320×320×32` | 32      |
+| Stage2 | `160×160×64` | 64      |
+| Stage3 | `80×80×128`  | 128     |
+| Stage4 | `40×40×256`  | 256     |
+| Stage5 | `20×20×512`  | 512     |
+| Neck   | multi-scale  | 128–512 |
+
 
 ✅ Key Architectural Improvements over YOLOv5
 C2f modules replace older CSP blocks → better gradient flow
@@ -683,6 +755,14 @@ Pool 1	5×5
 Pool 2	9×9
 Pool 3	13×13
 
+| Stage    | Receptive Field Size      |
+| -------- | ------- |
+| Original | `1×1`   |
+| Pool1    | `5×5`   |
+| Pool2    | `9×9`   |
+| Pool3    | `13×13` |
+
+
 👉 This allows the model to understand both local and global context.
 
 🔹 SPP vs SPPF
@@ -692,6 +772,15 @@ Pooling Style	Parallel pooling	Sequential pooling
 Speed	Slower	Faster
 Memory Usage	Higher	Lower
 Output Quality	Good	Similar or better
+
+| Aspect | SPP      | SPPF       |
+| ------ | -------- | ---------- |
+| Pooling Style  | Parallel | Sequential |
+| Speed  | Slow     | Fast       |
+| Memory | High     | Low        |
+
+
+
 🔹 Advantages of SPPF
 ✅ Faster computation than traditional SPP
 ✅ Captures multi-scale features efficiently
