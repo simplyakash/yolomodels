@@ -161,6 +161,25 @@ Assume input:
 | C4        | $512 \times 100 \times 100$ | Downsample    | $1024 \times 50 \times 50$  |
 | C5        | $1024 \times 50 \times 50$  | Downsample    | $2048 \times 25 \times 25$  |
 
+**Example**
+
+Downsample 
+
+3×3×256 → produces 1 feature map 
+
+Each filter learns something different:
+
+Filter 1 → edges
+Filter 2 → textures
+Filter 3 → patterns
+...
+Filter 512 → complex features
+
+**Output** 
+
+512 feature maps stacked
+→ 512 × 100 × 100
+
 🔺 FPN Output (Multi-scale features)
 
 | **Level** | **Input (from backbone)** | **Output Shape**            |
