@@ -161,6 +161,17 @@ Assume input:
 | C4        | $512 \times 100 \times 100$ | Downsample    | $1024 \times 50 \times 50$  |
 | C5        | $1024 \times 50 \times 50$  | Downsample    | $2048 \times 25 \times 25$  |
 
+
+![backbone_table](https://latex.codecogs.com/png.image?\dpi{150}\begin{array}{|c|c|c|c|}\hline
+\textbf{Stage} & \textbf{Input\ Shape} & \textbf{Operation} & \textbf{Output\ Shape}\\ \hline
+Input & 3\times800\times800 & Image & 3\times800\times800\\ \hline
+Conv1 & 3\times800\times800 & Conv+Pool & 64\times200\times200\\ \hline
+C2 & 64\times200\times200 & ResNet\ block & 256\times200\times200\\ \hline
+C3 & 256\times200\times200 & Downsample & 512\times100\times100\\ \hline
+C4 & 512\times100\times100 & Downsample & 1024\times50\times50\\ \hline
+C5 & 1024\times50\times50 & Downsample & 2048\times25\times25\\ \hline
+\end{array})
+
 **Example**
 
 Downsample 
@@ -292,6 +303,8 @@ Mask prediction
 The overall loss is:
 
 $L_{total} = L_{cls} + L_{box} + L_{mask}$
+
+![total_loss](https://latex.codecogs.com/png.image?\dpi{150}L_{total}=L_{cls}+L_{box}+L_{mask})
 
 📊 Loss Breakdown
 
