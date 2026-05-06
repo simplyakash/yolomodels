@@ -161,16 +161,18 @@ Assume input:
 | C4        | $512 \times 100 \times 100$ | Downsample    | $1024 \times 50 \times 50$  |
 | C5        | $1024 \times 50 \times 50$  | Downsample    | $2048 \times 25 \times 25$  |
 
+| Stage | Input Shape       | Operation    | Output Shape      |
+| ----- | ----------------- | ------------ | ----------------- |
+| Input | `3 x 800 x 800`   | Image        | `3 x 800 x 800`   |
+| Conv1 | `3 x 800 x 800`   | Conv + Pool  | `64 x 200 x 200`  |
+| C2    | `64 x 200 x 200`  | ResNet block | `256 x 200 x 200` |
+| C3    | `256 x 200 x 200` | Downsample   | `512 x 100 x 100` |
+| C4    | `512 x 100 x 100` | Downsample   | `1024 x 50 x 50`  |
+| C5    | `1024 x 50 x 50`  | Downsample   | `2048 x 25 x 25`  |
 
-![backbone_table](https://latex.codecogs.com/png.image?\dpi{150}\begin{array}{|c|c|c|c|}\hline
-\textbf{Stage} & \textbf{Input\ Shape} & \textbf{Operation} & \textbf{Output\ Shape}\\ \hline
-Input & 3\times800\times800 & Image & 3\times800\times800\\ \hline
-Conv1 & 3\times800\times800 & Conv+Pool & 64\times200\times200\\ \hline
-C2 & 64\times200\times200 & ResNet\ block & 256\times200\times200\\ \hline
-C3 & 256\times200\times200 & Downsample & 512\times100\times100\\ \hline
-C4 & 512\times100\times100 & Downsample & 1024\times50\times50\\ \hline
-C5 & 1024\times50\times50 & Downsample & 2048\times25\times25\\ \hline
-\end{array})
+
+
+
 
 **Example**
 
@@ -200,6 +202,14 @@ Filter 512 → complex features
 | P4        | C4                        | $256 \times 50 \times 50$   |
 | P5        | C5                        | $256 \times 25 \times 25$   |
 
+| Level | Input | Output Shape      |
+| ----- | ----- | ----------------- |
+| P2    | C2    | `256 x 200 x 200` |
+| P3    | C3    | `256 x 100 x 100` |
+| P4    | C4    | `256 x 50 x 50`   |
+| P5    | C5    | `256 x 25 x 25`   |
+
+
 
 👉 All levels have same channels (256)
 
@@ -222,6 +232,14 @@ Bounding box offsets
 | Objectness | $256 \times H \times W$ | 1×1 Conv      | $A \times H \times W$   |
 | Box Reg    | $256 \times H \times W$ | 1×1 Conv      | $4A \times H \times W$  |
 
+| Stage      | Input Shape   | Operation | Output Shape  |
+| ---------- | ------------- | --------- | ------------- |
+| RPN        | `256 x H x W` | Conv      | `256 x H x W` |
+| Objectness | `256 x H x W` | 1x1 Conv  | `A x H x W`   |
+| Box Reg    | `256 x H x W` | 1x1 Conv  | `4A x H x W`  |
+
+A = number of anchors
+
 $A$ = number of anchors per location (e.g., 3 or 9)
 After RPN
 Thousands of proposals → filtered (NMS)
@@ -235,6 +253,12 @@ Converts variable-size boxes → fixed size
 | RoI Align | Feature maps + proposals | Crop + resize | $256 \times 7 \times 7$ |
 
 
+| Stage     | Input                    | Operation     | Output        |
+| --------- | ------------------------ | ------------- | ------------- |
+| RoI Align | Feature maps + proposals | Crop + resize | `256 x 7 x 7` |
+
+
+
 👉 One feature map per proposal
 
 🧠 4. Detection Head (Box + Class)
@@ -244,6 +268,14 @@ Converts variable-size boxes → fixed size
 | FC2       | 1024                    | FC            | 1024                   |
 | Class     | 1024                    | FC            | $N_{classes}$          |
 | Box       | 1024                    | FC            | $4 \times N_{classes}$ |
+
+| Stage | Input         | Operation    | Output          |
+| ----- | ------------- | ------------ | --------------- |
+| FC1   | `256 x 7 x 7` | Flatten + FC | `1024`          |
+| FC2   | `1024`        | FC           | `1024`          |
+| Class | `1024`        | FC           | `N_classes`     |
+| Box   | `1024`        | FC           | `4 x N_classes` |
+
 
 🎭 5. Mask Head
 
@@ -257,6 +289,16 @@ Separate branch for segmentation
 | Mask Conv4 | $256 \times 14 \times 14$ | Conv          | $256 \times 14 \times 14$         |
 | Upsample   | $256 \times 14 \times 14$ | Deconv        | $256 \times 28 \times 28$         |
 | Output     | $256 \times 28 \times 28$ | Conv          | $N_{classes} \times 28 \times 28$ |
+
+| Stage    | Input           | Operation | Output                |
+| -------- | --------------- | --------- | --------------------- |
+| Conv1    | `256 x 14 x 14` | Conv      | `256 x 14 x 14`       |
+| Conv2    | `256 x 14 x 14` | Conv      | `256 x 14 x 14`       |
+| Conv3    | `256 x 14 x 14` | Conv      | `256 x 14 x 14`       |
+| Conv4    | `256 x 14 x 14` | Conv      | `256 x 14 x 14`       |
+| Upsample | `256 x 14 x 14` | Deconv    | `256 x 28 x 28`       |
+| Output   | `256 x 28 x 28` | Conv      | `N_classes x 28 x 28` |
+
 
 🎯 Final Outputs
 
@@ -304,7 +346,8 @@ The overall loss is:
 
 $L_{total} = L_{cls} + L_{box} + L_{mask}$
 
-![total_loss](https://latex.codecogs.com/png.image?\dpi{150}L_{total}=L_{cls}+L_{box}+L_{mask})
+L_total = L_cls + L_box + L_mask
+
 
 📊 Loss Breakdown
 
@@ -314,6 +357,13 @@ $L_{total} = L_{cls} + L_{box} + L_{mask}$
 | $L_{box}$  | Refines bounding box       | Positive RoIs only  |
 | $L_{mask}$ | Predicts segmentation mask | Positive RoIs only  |
 
+| Loss     | Purpose        |
+| -------- | -------------- |
+| `L_cls`  | Classification |
+| `L_box`  | Bounding box   |
+| `L_mask` | Segmentation   |
+
+
 🔷 1. Classification Loss ($L_{cls}$)
 
 🧠 Purpose
@@ -321,6 +371,8 @@ Predicts object class (including background)
 📐 Formula
 
 $L_{cls} = -\log(p_{y})$
+
+L_cls = -log(p_y)
 
 $p_{y}$ = predicted probability for true class
 
@@ -333,6 +385,8 @@ Adjusts predicted boxes to match ground truth
 
 $L_{box} = \text{SmoothL1}(t - t^*)$
 
+L_box = SmoothL1(t - t*)
+
 $t$ = predicted box offsets
 $t^*$ = ground truth offsets
 
@@ -344,6 +398,8 @@ Predicts pixel-wise mask for each object
 📐 Formula
 
 $L_{mask} = -[y \log(p) + (1 - y)\log(1 - p)]$
+
+L_mask = -(y log(p) + (1-y) log(1-p))
 
 $y$ = ground truth mask (0 or 1)
 $p$ = predicted mask probability
@@ -371,11 +427,22 @@ Mask head → $L_{mask}$
 | Positive     | ✅         | ✅         | ✅          |
 | Negative     | ✅         | ❌         | ❌          |
 
+| RoI      | L_cls | L_box | L_mask |
+| -------- | ----- | ----- | ------ |
+| Positive | ✅     | ✅     | ✅      |
+| Negative | ✅     | ❌     | ❌      |
+
+
 🧠 Intuition
 
 $L_{cls}$ → “What is this object?”
 $L_{box}$ → “Where exactly is it?”
 $L_{mask}$ → “What pixels belong to it?”
+
+L_cls → what is it
+L_box → where is it
+L_mask → which pixels
+
 🚀 Key Insight
 
 👉 Mask R-CNN is a multi-task model trained end-to-end:
@@ -385,4 +452,7 @@ All optimized together
 🧩 One-Line Summary
 
 👉 $L_{total} = L_{cls} + L_{box} + L_{mask}$ combines
+
+👉 L_total = L_cls + L_box + L_mask
+
 classification + box refinement + pixel segmentation
