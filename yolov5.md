@@ -171,7 +171,36 @@ Output
                     │
                   Output
 ```
+detailed bottle neck
 
+```text
+                Input
+         128 × 80 × 80
+                     │
+          ┌──────────┴──────────┐
+          │                     │
+          │                     │
+Shortcut Path           Bottleneck Path
+64 × 80 × 80             64 × 80 × 80
+                                │
+                         Bottleneck 1
+                                │
+                         64 × 80 × 80
+                                │
+                         Bottleneck 2
+                                │
+                         64 × 80 × 80
+          │                     │
+          └──────────┬──────────┘
+                     │
+              Concatenate
+                     │
+            128 × 80 × 80
+                     │
+               Final Conv
+                     │
+            128 × 80 × 80
+```
 ---
 
 # 🔹 Why Split the Input?
@@ -620,3 +649,146 @@ Thus:
 # 🎤 Interview-Friendly Explanation
 
 > “YOLOv5 uses a backbone-neck-head architecture for real-time object detection. The backbone extracts features, the neck aggregates multi-scale information, and the head predicts bounding boxes, objectness, and class probabilities. The total loss combines CIoU loss for localization and Binary Cross Entropy losses for objectness and classification.”
+
+
+
+
+
+
+# 🧠 YOLOv5 Architecture — Layer-wise Input and Output Shapes
+
+## 📌 Example Input Image
+
+```text
+3 × 640 × 640
+```
+
+Where:
+- 3 → RGB channels
+- 640 × 640 → image size
+
+---
+
+# 🏗️ YOLOv5 Architecture Flow
+
+```text
+Input
+  ↓
+Backbone (Feature Extraction)
+  ↓
+Neck (Feature Fusion)
+  ↓
+Head (Detection)
+```
+
+---
+
+# 📊 YOLOv5 Layer-wise Shapes
+
+| Stage | Layer | Operation | Input Shape | Output Shape |
+|---|---|---|---|---|
+| Input | Image | RGB Input | 3 × 640 × 640 | 3 × 640 × 640 |
+| 1 | Conv | 6×6 Conv, Stride 2 | 3 × 640 × 640 | 32 × 320 × 320 |
+| 2 | Conv | 3×3 Conv, Stride 2 | 32 × 320 × 320 | 64 × 160 × 160 |
+| 3 | C3 | CSP Bottleneck Block | 64 × 160 × 160 | 64 × 160 × 160 |
+| 4 | Conv | 3×3 Conv, Stride 2 | 64 × 160 × 160 | 128 × 80 × 80 |
+| 5 | C3 | CSP Bottleneck Block | 128 × 80 × 80 | 128 × 80 × 80 |
+| 6 | Conv | 3×3 Conv, Stride 2 | 128 × 80 × 80 | 256 × 40 × 40 |
+| 7 | C3 | CSP Bottleneck Block | 256 × 40 × 40 | 256 × 40 × 40 |
+| 8 | Conv | 3×3 Conv, Stride 2 | 256 × 40 × 40 | 512 × 20 × 20 |
+| 9 | C3 | CSP Bottleneck Block | 512 × 20 × 20 | 512 × 20 × 20 |
+| 10 | SPPF | Spatial Pyramid Pooling Fast | 512 × 20 × 20 | 512 × 20 × 20 |
+
+---
+
+# 🔄 Neck (PANet + FPN)
+
+| Stage | Layer | Operation | Input Shape | Output Shape |
+|---|---|---|---|---|
+| 11 | Upsample | Scale ×2 | 512 × 20 × 20 | 512 × 40 × 40 |
+| 12 | Concat | Feature Fusion | 512 × 40 × 40 + 256 × 40 × 40 | 768 × 40 × 40 |
+| 13 | C3 | Feature Fusion Block | 768 × 40 × 40 | 256 × 40 × 40 |
+| 14 | Upsample | Scale ×2 | 256 × 40 × 40 | 256 × 80 × 80 |
+| 15 | Concat | Feature Fusion | 256 × 80 × 80 + 128 × 80 × 80 | 384 × 80 × 80 |
+| 16 | C3 | Feature Fusion Block | 384 × 80 × 80 | 128 × 80 × 80 |
+
+---
+
+# 🎯 Detection Head
+
+YOLOv5 performs detection at 3 scales.
+
+| Detection Scale | Feature Map Size | Purpose |
+|---|---|---|
+| P3 | 80 × 80 | Small objects |
+| P4 | 40 × 40 | Medium objects |
+| P5 | 20 × 20 | Large objects |
+
+---
+
+# 📦 Detection Output Shapes
+
+Assume:
+- 80 classes (COCO)
+- 3 anchors per scale
+
+Output channels:
+
+```text
+3 × (5 + 80) = 255
+```
+
+Where:
+- 5 → x, y, w, h, confidence
+- 80 → class probabilities
+
+---
+
+| Detection Layer | Input Shape | Output Shape |
+|---|---|---|
+| Small Scale Detection | 128 × 80 × 80 | 255 × 80 × 80 |
+| Medium Scale Detection | 256 × 40 × 40 | 255 × 40 × 40 |
+| Large Scale Detection | 512 × 20 × 20 | 255 × 20 × 20 |
+
+---
+
+# 🧠 Understanding Spatial Reduction
+
+Every stride-2 convolution halves spatial size:
+
+| Before | After |
+|---|---|
+| 640 × 640 | 320 × 320 |
+| 320 × 320 | 160 × 160 |
+| 160 × 160 | 80 × 80 |
+| 80 × 80 | 40 × 40 |
+| 40 × 40 | 20 × 20 |
+
+---
+
+# 📌 Why Multi-Scale Detection Matters
+
+| Scale | Best For |
+|---|---|
+| 80 × 80 | Small objects (plates, faces) |
+| 40 × 40 | Medium objects |
+| 20 × 20 | Large objects |
+
+---
+
+# 🚘 ANPR Relevance
+
+For ANPR:
+- number plates are small objects
+- 80 × 80 detection layer becomes critical
+
+The finer feature map:
+- preserves small plate details
+- improves localization accuracy
+- improves OCR crop quality
+
+---
+
+# 🎤 Interview-Friendly Explanation
+
+> “YOLOv5 uses a backbone-neck-head architecture where spatial dimensions reduce progressively while channel depth increases. The model performs multi-scale detection using feature maps at 80×80, 40×40, and 20×20 resolutions, enabling detection of small, medium, and large objects efficiently.”
