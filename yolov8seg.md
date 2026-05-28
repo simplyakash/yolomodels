@@ -167,15 +167,19 @@ These coefficients determine:
 
 Final mask:
 
-:contentReference[oaicite:0]{index=0}
+```text
+M_pred = Σ(α_i × P_i)
+```
+
 
 Where:
 
 | Symbol | Meaning |
 |---|---|
-| $P_i$ | Prototype masks |
-| $\alpha_i$ | Object-specific coefficients |
-| $K$ | Number of prototypes |
+| M_pred | Final predicted mask |
+| P_i | Prototype masks |
+| α_i | Object-specific coefficients |
+| K | Number of prototypes |
 
 ---
 
@@ -328,7 +332,9 @@ or
 
 YOLOv8 segmentation uses a multi-task loss:
 
-:contentReference[oaicite:1]{index=1}
+```text
+L_total = L_box + L_cls + L_dfl + L_mask
+```
 
 ---
 
@@ -350,8 +356,9 @@ Uses:
 
 Formula:
 
-:contentReference[oaicite:2]{index=2}
-
+```text
+L_box = 1 - IoU(pred, gt)
+```
 ---
 
 ## ✔ Purpose
@@ -371,7 +378,9 @@ Binary Cross Entropy (BCE)
 
 Formula:
 
-:contentReference[oaicite:3]{index=3}
+```text
+L_BCE = -( y log(ŷ) + (1-y) log(1-ŷ) )
+```
 
 ---
 
@@ -393,7 +402,9 @@ instead of direct coordinates.
 
 Formula:
 
-:contentReference[oaicite:4]{index=4}
+```text
+L_DFL = -Σ y_i log(p_i)
+```
 
 ---
 
@@ -410,8 +421,9 @@ Formula:
 
 # 📌 Step 1 — Predicted Mask
 
-:contentReference[oaicite:5]{index=5}
-
+```text
+M_pred = Σ(α_i × P_i)
+```
 ---
 
 # 📌 Step 2 — Resize Ground Truth Mask
@@ -423,25 +435,36 @@ Ground truth mask resized to:
 
 # 📌 Step 3 — BCE Mask Loss
 
-:contentReference[oaicite:6]{index=6}
+```text
+L_mask = BCE(M_pred, M_gt)
+```
 
 ---
 
 # 📌 Optional Dice Loss
 
-:contentReference[oaicite:7]{index=7}
+```text
+L_dice = 1 - (2 × |P ∩ G|) / (|P| + |G|)
+```
 
 ---
 
 # 📌 Final Mask Loss
 
-:contentReference[oaicite:8]{index=8}
+```text
+L_mask = BCE + L_dice
+```
 
 ---
 
 # 📊 Full Expanded Loss
 
-:contentReference[oaicite:9]{index=9}
+```text
+L_total =
+λ1L_box +
+λ2L_cls +
+λ3L_dfl +
+λ4L_mas
 
 ---
 
