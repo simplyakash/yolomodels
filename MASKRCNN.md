@@ -161,14 +161,16 @@ Assume input:
 | C4        | $512 \times 100 \times 100$ | Downsample    | $1024 \times 50 \times 50$  |
 | C5        | $1024 \times 50 \times 50$  | Downsample    | $2048 \times 25 \times 25$  |
 
-| Stage | Input Shape       | Operation    | Output Shape      |
-| ----- | ----------------- | ------------ | ----------------- |
-| Input | `3 x 800 x 800`   | Image        | `3 x 800 x 800`   |
-| Conv1 | `3 x 800 x 800`   | Conv + Pool  | `64 x 200 x 200`  |
-| C2    | `64 x 200 x 200`  | ResNet block | `256 x 200 x 200` |
-| C3    | `256 x 200 x 200` | Downsample   | `512 x 100 x 100` |
-| C4    | `512 x 100 x 100` | Downsample   | `1024 x 50 x 50`  |
-| C5    | `1024 x 50 x 50`  | Downsample   | `2048 x 25 x 25`  |
+
+| Stage | Input Shape | Main Operations | Stride | Output Shape |
+|---------|------------|----------------|---------|-------------|
+| Input | 3 × 800 × 800 | Original Image | - | 3 × 800 × 800 |
+| Conv1 | 3 × 800 × 800 | 7×7 Conv (64 filters) + BatchNorm + ReLU | 2 | 64 × 400 × 400 |
+| MaxPool | 64 × 400 × 400 | 3×3 MaxPool | 2 | 64 × 200 × 200 |
+| C2 | 64 × 200 × 200 | ResNet Bottleneck Blocks (1×1 → 3×3 → 1×1) × 3 | 1 | 256 × 200 × 200 |
+| C3 | 256 × 200 × 200 | First Bottleneck uses stride=2, remaining Bottlenecks stride=1 | 2 | 512 × 100 × 100 |
+| C4 | 512 × 100 × 100 | First Bottleneck uses stride=2, remaining Bottlenecks stride=1 | 2 | 1024 × 50 × 50 |
+| C5 | 1024 × 50 × 50 | First Bottleneck uses stride=2, remaining Bottlenecks stride=1 | 2 | 2048 × 25 × 25 |
 
 
 
